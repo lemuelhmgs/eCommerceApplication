@@ -5,6 +5,8 @@ import com.example.ecommerce_application.model.persistence.UserOrder;
 import com.example.ecommerce_application.model.persistence.repositories.OrderRepository;
 import com.example.ecommerce_application.model.persistence.repositories.UserRepository;
 import java.util.List;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -17,7 +19,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/api/order")
 public class OrderController {
 	
-	
+	private final static Logger log = LoggerFactory.getLogger(OrderController.class);
 	@Autowired
 	private UserRepository userRepository;
 	
@@ -29,10 +31,12 @@ public class OrderController {
 	public ResponseEntity<UserOrder> submit(@PathVariable String username) {
 		User user = userRepository.findByUsername(username);
 		if(user == null) {
+			log.error("Can't create order");
 			return ResponseEntity.notFound().build();
 		}
 		UserOrder order = UserOrder.createFromCart(user.getCart());
 		orderRepository.save(order);
+		log.info("Created order");
 		return ResponseEntity.ok(order);
 	}
 	
@@ -40,6 +44,7 @@ public class OrderController {
 	public ResponseEntity<List<UserOrder>> getOrdersForUser(@PathVariable String username) {
 		User user = userRepository.findByUsername(username);
 		if(user == null) {
+			log.error("Can't get order");
 			return ResponseEntity.notFound().build();
 		}
 		return ResponseEntity.ok(orderRepository.findByUser(user));
